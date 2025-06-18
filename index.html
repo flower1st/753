@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>SDGs 責任消費與生產</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #f4f4f4;
+      padding: 10px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 90vh;
+      background-image: url('1.png');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .bag {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+    }
+
+    #popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border: 2px solid black;
+      display: none;
+      z-index: 10;
+    }
+
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      z-index: 5;
+    }
+
+    .button {
+      margin-top: 10px;
+      padding: 5px 15px;
+      cursor: pointer;
+    }
+
+    /* 提示圖片與關閉按鈕 */
+    #tip-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 15;
+    }
+
+    #tip-image {
+      max-width: 80%;
+      max-height: 80%;
+      box-shadow: 0 0 10px black;
+    }
+
+    #close-btn {
+      position: absolute;
+      top: 5%;
+      right: 5%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 背景音樂 -->
+  <audio id="bgm" src="waltz-in-a-minor.mp3" loop autoplay></audio>
+
+  <!-- 自動播放保險措施：首次點擊觸發音樂 -->
+  <script>
+    document.addEventListener("click", function () {
+      const bgm = document.getElementById("bgm");
+      if (bgm.paused) {
+        bgm.play().catch(e => {
+          console.log("自動播放失敗：", e);
+        });
+      }
+    }, { once: true });
+  </script>
+
+  <header>
+    <div>SDGs 責任消費與生產</div>
+    <div>答對題數：<span id="score">0</span>/5</div>
+  </header>
+
+  <div id="game-container"></div>
+  <div id="overlay"></div>
+  <div id="popup"></div>
+
+  <!-- 提示圖層 -->
+  <div id="tip-container">
+    <img src="通關提示.png" id="tip-image" alt="提示">
+    <img src="X.png" id="close-btn" alt="關閉">
+  </div>
+
+  <script>
+    const questions = [
+      { q: "何者最能落實『責任消費』的精神？", options: ["購買最新款電子產品", "儘量使用一次性用品", "支持本地生產及公平貿易產品", "大量購買以防缺貨"], answer: 2 },
+      { q: "『責任生產』最重要的原則之一是？", options: ["降低成本", "提高產量", "減少資源浪費", "增加廣告投放"], answer: 2 },
+      { q: "下列何者有助於達成永續消費？", options: ["天天叫外送", "使用環保袋代替塑膠袋", "購買過度包裝的商品", "每月換新手機"], answer: 1 },
+      { q: "選擇當季蔬果的好處是？", options: ["更便宜且減少碳足跡", "只能在夏天吃", "需要冷藏保存", "來自國外才新鮮"], answer: 0 },
+      { q: "何者不是責任生產的一環？", options: ["採用再生材料", "降低廢棄物", "增加耗水工序", "節能減碳製程"], answer: 2 },
+      { q: "消費者購物時可透過什麼行為支持永續？", options: ["選擇最低價產品", "追求品牌", "了解產品來源與製程", "盲目跟風採購"], answer: 2 },
+      { q: "當產品標示有『碳足跡』資訊時，表示？", options: ["價格較高", "顏色較好", "生產過程產生的碳排放", "不能回收"], answer: 2 },
+      { q: "責任生產強調什麼？", options: ["以最快速度生產", "不計代價地創造利潤", "生產對環境與社會友善的產品", "一次大量製造"], answer: 2 },
+      { q: "什麼是過度消費的負面影響？", options: ["促進經濟穩定", "減少污染", "資源浪費與環境破壞", "提升生活品質"], answer: 2 },
+      { q: "下列哪項不是責任消費者應該有的行為？", options: ["閱讀產品標籤", "了解商品來源", "隨意棄置物品", "支持永續品牌"], answer: 2 },
+      { q: "SDG12 的核心概念是？", options: ["科技創新", "責任消費與生產", "健康與福祉", "終結貧窮"], answer: 1 },
+      { q: "支持哪一種生產有助於永續？", options: ["使用大量化學肥料的農場", "高碳排產業", "有機農業", "低工資工廠"], answer: 2 },
+      { q: "『惜食』的行為包含？", options: ["點太多吃不完", "適量點餐不浪費", "天天吃到飽", "盡量不帶剩食回家"], answer: 1 },
+      { q: "下列哪一個屬於永續生活方式？", options: ["使用二手物品", "常搭飛機旅遊", "天天網購快時尚", "開冷氣整天不關"], answer: 0 },
+      { q: "如何支持責任生產企業？", options: ["購買黑心產品", "選擇高汙染廠牌", "支持環保與公平貿易品牌", "只挑便宜貨"], answer: 2 },
+      { q: "什麼是『綠色消費』？", options: ["消費時只看價格", "選擇對環境友善產品", "大量囤貨", "選購高科技商品"], answer: 1 },
+      { q: "生產過程中使用哪一種能源較永續？", options: ["煤炭", "石油", "再生能源", "天然氣"], answer: 2 },
+      { q: "哪一個行為有助於減少廢棄物？", options: ["使用塑膠吸管", "重複使用水瓶", "天天用免洗餐具", "浪費食物"], answer: 1 },
+      { q: "下列哪一項不是 SDG 12 的目標？", options: ["促進旅遊業", "減少食物浪費", "強化廢棄物管理", "落實永續消費"], answer: 0 },
+      { q: "若每個人都責任消費，最可能產生什麼結果？", options: ["環境惡化", "資源耗盡", "減少碳排與廢棄物", "促進浪費"], answer: 2 }
+    ];
+
+    let correctCount = 0;
+    let answered = 0;
+    let usedIndexes = [];
+
+    const container = document.getElementById("game-container");
+    const popup = document.getElementById("popup");
+    const overlay = document.getElementById("overlay");
+    const scoreDisplay = document.getElementById("score");
+
+    function showPopup(content) {
+      overlay.style.display = 'block';
+      popup.innerHTML = content;
+      popup.style.display = 'block';
+    }
+
+    function hidePopup() {
+      overlay.style.display = 'none';
+      popup.style.display = 'none';
+    }
+
+    function getRandomUnusedQuestionIndex() {
+      let index;
+      do {
+        index = Math.floor(Math.random() * questions.length);
+      } while (usedIndexes.includes(index));
+      usedIndexes.push(index);
+      return index;
+    }
+
+    function createBag(x, y) {
+      const img = document.createElement("img");
+      img.src = "袋子.png";
+      img.className = "bag";
+      img.style.left = x + "%";
+      img.style.top = y + "%";
+      img.onclick = () => {
+        if (answered >= 5) return;
+        const index = getRandomUnusedQuestionIndex();
+        const q = questions[index];
+        let html = `<p>${q.q}</p>`;
+        q.options.forEach((opt, i) => {
+          html += `<button class='button' onclick='answer(${index}, ${i})'>${opt}</button><br>`;
+        });
+        showPopup(html);
+      };
+      container.appendChild(img);
+    }
+
+    window.answer = function(qIndex, selected) {
+      hidePopup();
+      const q = questions[qIndex];
+      if (selected === q.answer) {
+        correctCount++;
+        alert("恭喜答對！");
+      } else {
+        alert("請加油！");
+      }
+      answered++;
+      scoreDisplay.textContent = correctCount;
+
+      if (answered === 5) {
+        setTimeout(() => {
+          if (correctCount >= 4) {
+            showPopup(`<p>挑戰成功！準備前往下一關</p><button class='button' onclick="location.href='level2.html'">下一關</button>`);
+          } else {
+            showPopup(`<p>答對題數不足，請重新挑戰</p><button class='button' onclick="location.reload()">重新挑戰</button>`);
+          }
+        }, 500);
+      }
+    };
+
+    const positions = [
+      [20, 20],
+      [70, 20],
+      [40, 40],
+      [25, 70],
+      [70, 70]
+    ];
+    positions.forEach(pos => createBag(pos[0], pos[1]));
+
+    // 關閉提示圖示
+    document.getElementById("close-btn").onclick = function () {
+      document.getElementById("tip-container").style.display = "none";
+    };
+  </script>
+</body>
+</html>
